@@ -75,71 +75,65 @@ userRouter.post("/login", async (req, res) => {
   }
 });
 
-
-userRoutes.get("/allUser", async (req, res) => {
-    const { userId } = req.query;
-    try {
-        const users = await UserModel.find({
-            _id: { $ne: userId },
-        });
-        res.send(users);
-    } catch (error) {
-        res.send(error.message);
-    }
+userRouter.get("/allUser", async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const users = await UserModel.find({
+      _id: { $ne: userId },
+    });
+    res.send(users);
+  } catch (error) {
+    res.send(error.message);
+  }
 });
 // sender / receiver id;
-userRoutes.get("/alreadyConnectedUser", async (req, res) => {
-    const { userId } = req.query;
-    try {
-        const users = await UserModel.findOne({
-            _id: userId,
-        });
-        let arr = users.chatMessageModel;
-        let obj = {};
-        for (let i = 0; i < arr.length; i++) {
-            if (arr[i].senderId == userId) {
-                obj[arr[i].receiverId] = 1;
-            } else {
-                obj[arr[i].senderId] = 1;
-            }
-        }
-        console.log(obj);
-        let ans = [];
-        for (key in obj) {
-            const eleUser = await UserModel.findOne({
-                _id: key,
-            });
-            ans.push(eleUser);
-        }
-        res.send([ans, users.name]);
-    } catch (error) {
-        res.send(error.message);
+userRouter.get("/alreadyConnectedUser", async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const users = await UserModel.findOne({
+      _id: userId,
+    });
+    let arr = users.chatMessageModel;
+    let obj = {};
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].senderId == userId) {
+        obj[arr[i].receiverId] = 1;
+      } else {
+        obj[arr[i].senderId] = 1;
+      }
     }
+    console.log(obj);
+    let ans = [];
+    for (key in obj) {
+      const eleUser = await UserModel.findOne({
+        _id: key,
+      });
+      ans.push(eleUser);
+    }
+    res.send([ans, users.name]);
+  } catch (error) {
+    res.send(error.message);
+  }
 });
 // get all msg  , clear chat (userId1 , userId2) clear
 // get all messages
-userRoutes.get("/getAllMessages", async (req, res) => {
-    const { user1, user2 } = req.query;
-    try {
-        const userChatData = await UserModel.findOne({ _id: user1 });
-        const msgs = userChatData.chatMessageModel;
-        let allData = [];
-        for (let i = 0; i < msgs.length; i++) {
-            if (msgs[i].senderId === user1 && msgs[i].receiverId === user2) {
-                allData.push({ data: msgs[i], type: "send" });
-            } else if (
-                msgs[i].senderId === user2 &&
-                msgs[i].receiverId === user1
-            ) {
-                allData.push({ data: msgs[i], type: "receive" });
-            }
-        }
-        res.send(allData);
-    } catch (error) {
-        res.send({ message: "Something went wrong", error: error.message });
+userRouter.get("/getAllMessages", async (req, res) => {
+  const { user1, user2 } = req.query;
+  try {
+    const userChatData = await UserModel.findOne({ _id: user1 });
+    const msgs = userChatData.chatMessageModel;
+    let allData = [];
+    for (let i = 0; i < msgs.length; i++) {
+      if (msgs[i].senderId === user1 && msgs[i].receiverId === user2) {
+        allData.push({ data: msgs[i], type: "send" });
+      } else if (msgs[i].senderId === user2 && msgs[i].receiverId === user1) {
+        allData.push({ data: msgs[i], type: "receive" });
+      }
     }
+    res.send(allData);
+  } catch (error) {
+    res.send({ message: "Something went wrong", error: error.message });
+  }
 });
-
-
 
 module.exports = { userRouter };
